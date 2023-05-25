@@ -1,0 +1,4 @@
+./chromedriver
+.DS_Store
+/myenv
+.env
