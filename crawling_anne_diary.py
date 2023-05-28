@@ -18,7 +18,6 @@ url = os.environ.get("URL")
 
 def init_driver():
     driver = uc.Chrome()
-    # url = 'https://play.google.com/books/reader?id=kRE8xxCmUcMC&pg=GBS.PA3.w.2.0.0&hl=en_GB'
     driver.get(url)
     print("Before return driver")
     time.sleep(30)
@@ -38,7 +37,7 @@ def do_login(driver):
             )
         )
     except TimeoutException:
-        print("TimeoutException")
+        print("TimeoutException for indent 1")
 
 
 if __name__ == "__main__":
@@ -54,27 +53,28 @@ if __name__ == "__main__":
     csv_raw_data = []
     cnt = 0
     while cnt < 10:
+        driver.switch_to.default_content()
         current_url = driver.current_url
-        print("현재 페이지 URL:", current_url)
+        print("URL:", current_url)
 
-        response = requests.get(current_url)
         iframes = driver.find_elements(By.CSS_SELECTOR, 'iframe')
         driver.switch_to.frame(iframes[0])
         try:
-            WebDriverWait(driver, 30).until(EC.presence_of_element_located(
+            WebDriverWait(driver, 60).until(EC.visibility_of_element_located(
                 (By.CLASS_NAME, 'chapter1')))
             date = driver.find_element(By.CLASS_NAME, 'chapter1').text.strip()
-            content = ""
+            print("DATE: ", date)
         except TimeoutException:
             print("TimeoutException for chapter1")
 
         try:
             contents_elem = driver.find_elements(By.CLASS_NAME, 'indent')
+            contents_text = [content.text.strip(
+            ) for content in contents_elem]
+            joint_contents = (' ').join(contents_text).lstrip()
         except NoSuchElementException:
             print("NoSuchElementException for indent")
             break
-        contents_text = [content.text.strip() for content in contents_elem]
-        joint_contents = (' ').join(contents_text)
 
         csv_raw_data.append([current_url, date, joint_contents])
 
@@ -83,6 +83,7 @@ if __name__ == "__main__":
         try:
             driver.find_element(
                 By.CSS_SELECTOR, '[aria-label="Next page"]').click()
+            print("Found next btn")
         except NoSuchElementException:
             print("NoSuchElementException for next btn")
             break
